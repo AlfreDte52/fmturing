@@ -1,0 +1,60 @@
+@* Veredicto y cinta final (RS-07). Se muestra al terminar la ejecución. *@
+
+<div class="card result">
+    <h2 class="h3">Resultado</h2>
+    @if (!Finished)
+    {
+        <p class="muted">La máquina todavía no se detiene. El resultado aparece al llegar al último paso (@Trace.StepCount).</p>
+    }
+    else if (Trace.Outcome == ExecutionOutcome.Accepted)
+    {
+        <span class="badge badge-ok">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3L13 4.5"></path></svg>
+            Aceptada · @Trace.StepCount pasos
+        </span>
+        <div class="result-tape mono">@Pretty(Trace.FinalTape)</div>
+        <p class="muted">@Arithmetic. Los operandos se conservan y el resultado queda detrás del =.</p>
+    }
+    else if (Trace.Outcome == ExecutionOutcome.Rejected)
+    {
+        <span class="badge badge-bad">Rechazada · se detuvo en @Trace.Last.Description.State</span>
+        <p class="muted">No hay transición para (@Trace.Last.Description.State, @Trace.Last.Description.Symbol). @RejectReason</p>
+    }
+    else
+    {
+        <span class="badge badge-bad">Se alcanzó el tope de @Simulator.DefaultMaxSteps pasos</span>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ExecutionTrace Trace { get; set; } = default!;
+
+    [Parameter]
+    public int Current { get; set; }
+
+    private bool Finished => Current >= Trace.StepCount;
+
+    private static string Pretty(string tape) => tape.Replace("+", " + ").Replace("=", " = ");
+
+    private string Arithmetic
+    {
+        get
+        {
+            var parts = Trace.FinalTape.Split('+', '=');
+            if (parts.Length != 3)
+            {
+                return string.Empty;
+            }
+
+            return $"{Convert.ToInt64(parts[0], 2)} + {Convert.ToInt64(parts[1], 2)} = {Convert.ToInt64(parts[2], 2)}";
+        }
+    }
+
+    private string RejectReason => Trace.Last.Description.State switch
+    {
+        "q0" => "El primer operando está vacío.",
+        "q2" => "Falta el separador o el segundo operando está vacío.",
+        _ => string.Empty,
+    };
+}

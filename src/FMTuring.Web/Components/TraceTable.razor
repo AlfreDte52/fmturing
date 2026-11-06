@@ -1,0 +1,45 @@
+@* Historial de descripciones instantáneas; pulsar una fila lleva la simulación a ese paso (RS-06, RS-15). *@
+
+<div class="trace-list" role="list">
+    @foreach (var step in VisibleSteps)
+    {
+        var index = step.Index;
+        <button type="button" role="listitem" class="@(index == Current ? "trace-row trace-row-on" : "trace-row")" @onclick="() => OnSelect.InvokeAsync(index)">
+            <span class="trace-index">@index</span>
+            <span class="trace-di">@step.Description</span>
+            <span class="trace-rule">@(step.Transition?.ToString() ?? "inicio")</span>
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public ExecutionTrace Trace { get; set; } = default!;
+
+    [Parameter]
+    public int Current { get; set; }
+
+    /// <summary>Filas antes del paso actual.</summary>
+    [Parameter]
+    public int Before { get; set; } = 6;
+
+    /// <summary>Filas después del paso actual.</summary>
+    [Parameter]
+    public int After { get; set; } = 3;
+
+    [Parameter]
+    public EventCallback<int> OnSelect { get; set; }
+
+    private IEnumerable<ExecutionStep> VisibleSteps
+    {
+        get
+        {
+            var from = Math.Max(0, Current - Before);
+            var to = Math.Min(Trace.StepCount, Current + After);
+            for (var i = from; i <= to; i++)
+            {
+                yield return Trace.Steps[i];
+            }
+        }
+    }
+}

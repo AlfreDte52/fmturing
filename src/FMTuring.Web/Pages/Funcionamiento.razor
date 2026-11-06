@@ -1,0 +1,41 @@
+@page "/funcionamiento"
+
+<PageTitle>FMTURING · Funcionamiento</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Explicación breve</div>
+        <h1>Cómo funciona la máquina</h1>
+    </div>
+    <p class="lead">La entrada son dos números binarios separados por un blanco, por ejemplo 101 B 11. Al terminar, la cinta contiene la operación completa: 101 + 11 = 1000.</p>
+</section>
+
+<section class="card">
+    <h2>El recorrido en cinco fases</h2>
+    <ol class="phases">
+        <li><b>Validar.</b> La máquina recorre los dos operandos. Si falta alguno, se detiene sin aceptar. Si todo está bien, cambia el separador por + y escribe = al final.</li>
+        <li><b>Sumar por columnas.</b> Toma el último bit libre de y y de x, los marca (X o Y) para no volver a usarlos y suma: bit de x + bit de y + acarreo. Escribe el bit de la suma a la izquierda de x y se lleva el acarreo en el estado, no en la cinta. Repite hasta agotar ambos números; si queda acarreo, ese 1 es el primer bit del resultado.</li>
+        <li><b>Normalizar.</b> Borra los ceros a la izquierda del resultado (0011 + 1 da 100, no 0100).</li>
+        <li><b>Trasladar.</b> Copia el resultado, bit a bit, detrás del =.</li>
+        <li><b>Restaurar.</b> Devuelve los operandos a 0 y 1 y se detiene sobre el = en el estado de aceptación qf.</li>
+    </ol>
+</section>
+
+<section class="card">
+    <h2>Hallazgos de la escritura formal</h2>
+    <ul class="findings">
+        <li><b>El blanco como separador tiene un límite.</b> La máquina no puede distinguir un segundo blanco interno del final de la entrada, así que el modelo de entrada admite un solo B.</li>
+        <li><b>La operación completa no es regular.</b> Con el lema de bombeo se demuestra que el lenguaje de las cintas x+y=z no es regular: la gramática y la expresión regular describen la entrada, y las descripciones instantáneas demuestran la suma.</li>
+        <li><b>La función extendida de una máquina de Turing es ⊢*.</b> El δ̂ de los autómatas finitos se convierte en la secuencia de descripciones instantáneas.</li>
+        <li><b>Estados frente a pasos.</b> Sumar contando (restar 1 a y y sumar 1 a x) necesita pocos estados, pero sus pasos crecen con el valor de y. La suma por columnas usa más estados y sus pasos solo crecen con la longitud: con 1111111111 + 1111111111 son 1.386 pasos en lugar de 26.654.</li>
+        <li><b>Notación.</b> El blanco se escribe B (□ en los apuntes) y pertenece a Γ; ε no se usa para el blanco porque denota la cadena vacía.</li>
+    </ul>
+</section>
+
+<section class="card video-section">
+    <div>
+        <h2 class="h3">Video explicativo</h2>
+        <p class="muted">Descripción formal, cadenas evaluadas, demostración de la simulación y hallazgos.</p>
+    </div>
+    <VideoEmbed />
+</section>

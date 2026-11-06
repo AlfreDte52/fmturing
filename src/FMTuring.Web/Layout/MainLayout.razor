@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+
+<header class="site-header">
+    <div class="container header-row">
+        <a class="brand" href="">
+            <span class="brand-name">FMTURING</span>
+            <span class="brand-sub">Máquina de Turing · Suma de dos números binarios</span>
+        </a>
+        <nav aria-label="Secciones" class="site-nav">
+            <NavLink href="" Match="NavLinkMatch.All">Simulador</NavLink>
+            <NavLink href="formal">Descripción formal</NavLink>
+            <NavLink href="maquina">La máquina</NavLink>
+            <NavLink href="evaluacion">Evaluación</NavLink>
+            <NavLink href="funcionamiento">Funcionamiento</NavLink>
+        </nav>
+    </div>
+</header>
+
+<main class="container page">
+    @Body
+</main>
+
+<footer class="site-footer">
+    <div class="container footer-row">
+        <span>FMTURING · Proyecto final de Autómatas y Lenguajes Formales</span>
+        <span>Máquina determinista de una cinta · 37 estados · 141 transiciones</span>
+    </div>
+</footer>

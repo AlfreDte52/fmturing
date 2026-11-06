@@ -1,0 +1,59 @@
+@page "/maquina"
+
+<PageTitle>FMTURING · La máquina</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Etapa 3 · Algoritmo y tabla de transiciones</div>
+        <h1>La máquina de suma por columnas</h1>
+    </div>
+    <p class="lead">La máquina suma como se hace a mano: columna por columna, de derecha a izquierda, llevando el acarreo en el estado. Tiene @M.States.Count estados y @M.Transitions.Count transiciones.</p>
+</section>
+
+<section class="card">
+    <h2>Fases del algoritmo</h2>
+    <ol class="phases">
+        <li><b>A · Validación y delimitadores (q0–q3).</b> Recorre x y y; cambia el separador B por + y escribe = al final. Rechaza si falta un operando o el separador.</li>
+        <li><b>B · Suma por columnas (q4–q25).</b> Marca el siguiente bit libre de y y de x (X = 0 sumado, Y = 1 sumado) y escribe el bit de la suma a la izquierda de x. El acarreo viaja en el estado.</li>
+        <li><b>C · Normalización (q26).</b> Borra los ceros iniciales del resultado; si todo es cero, deja un 0.</li>
+        <li><b>D · Traslado (q27–q34).</b> Lleva cada bit del resultado, del más significativo al menos, a la derecha del =.</li>
+        <li><b>E · Restauración (q35).</b> Cambia X por 0 y Y por 1, y se detiene sobre el = con movimiento S.</li>
+    </ol>
+</section>
+
+<section class="card">
+    <h2>Diagrama de transiciones</h2>
+    <StateDiagram InitialScale="0.7" MaxHeight="900" />
+</section>
+
+<section class="card">
+    <h2>Tabla de transiciones δ</h2>
+    <p class="muted">Cada celda contiene δ(q, a) = (p, b, D), que en la notación del curso es (q, a = p, b, D). Una raya indica que no hay transición: la máquina se detiene. En q0 y q2 eso significa rechazo.</p>
+    <TransitionTable />
+</section>
+
+<section class="card">
+    <h2>Estados, función y grados</h2>
+    <p class="muted">Grado de entrada: transiciones que llegan al estado; grado de salida: las que parten de él. Los bucles cuentan en ambos. Cada columna suma @M.Transitions.Count.</p>
+    <div class="table-scroll">
+        <table class="simple">
+            <thead><tr><th scope="col">Estado</th><th scope="col">Fase</th><th scope="col">Función</th><th scope="col">Entrada</th><th scope="col">Salida</th></tr></thead>
+            <tbody>
+                @foreach (var state in M.States)
+                {
+                    <tr>
+                        <th scope="row" class="mono">@state</th>
+                        <td>@(BinaryAdditionMachine.PhaseOf(state)?.ToString() ?? "—")</td>
+                        <td>@BinaryAdditionMachine.RoleOf(state)</td>
+                        <td class="mono">@M.InDegree(state)</td>
+                        <td class="mono">@M.OutDegree(state)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@code {
+    private static readonly TuringMachineDefinition M = BinaryAdditionMachine.Definition;
+}

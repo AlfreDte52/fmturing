@@ -1,0 +1,71 @@
+@page "/evaluacion"
+@inject Simulator Simulator
+
+<PageTitle>FMTURING · Evaluación</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Etapa 4 · Evaluación formal</div>
+        <h1>Cadenas evaluadas y descripciones instantáneas</h1>
+    </div>
+    <p class="lead">En una máquina de Turing, la función extendida es el cierre ⊢* de la relación de paso. Estas tablas las genera el mismo motor que usa el simulador, así que coinciden paso por paso con lo que se anima.</p>
+</section>
+
+<section class="grid-2">
+    @foreach (var e in _evaluations)
+    {
+        <div class="card">
+            <h2 class="h3">@e.Title</h2>
+            <div class="formula small-formula">@e.Trace.Steps[0].Description ⊢<sup>@e.Trace.StepCount</sup> @e.Trace.Last.Description</div>
+            <p>@e.Why</p>
+            <p class="muted">Cinta final: <b class="mono">@e.Trace.FinalTape</b> · @e.Trace.StepCount pasos · @(e.Trace.Outcome == ExecutionOutcome.Accepted ? "aceptada" : "rechazada")</p>
+            <a class="btn" href="?x=@e.X&y=@e.Y">Ver en el simulador</a>
+        </div>
+    }
+</section>
+
+<section class="card">
+    <h2>Cómo leer las tablas</h2>
+    <p>Cada fila aplica una transición de la tabla δ a la DI anterior. La DI es (estado, cinta a la izquierda del cabezal, símbolo bajo el cabezal, cinta a la derecha); λ es la cadena vacía y B el blanco. Los blancos de los extremos se omiten.</p>
+</section>
+
+@foreach (var e in _evaluations)
+{
+    <section class="card">
+        <details open="@e.Open">
+            <summary><h2 class="inline-h">@e.Title: @e.Trace.StepCount pasos</h2></summary>
+            <div class="table-scroll tall">
+                <table class="simple mono-cells">
+                    <thead><tr><th scope="col">Paso</th><th scope="col">Transición aplicada</th><th scope="col">DI resultante</th><th scope="col">Fase</th><th scope="col">Qué hace</th></tr></thead>
+                    <tbody>
+                        @foreach (var step in e.Trace.Steps)
+                        {
+                            <tr>
+                                <td>@step.Index</td>
+                                <td class="mono">@(step.Transition?.ToString() ?? "—")</td>
+                                <td class="mono">@step.Description</td>
+                                <td>@(step.Phase?.ToString() ?? "—")</td>
+                                <td>@step.Explanation</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+}
+
+@code {
+    private sealed record Evaluation(string Title, string X, string Y, string Why, ExecutionTrace Trace, bool Open);
+
+    private List<Evaluation> _evaluations = [];
+
+    protected override void OnInitialized()
+    {
+        _evaluations =
+        [
+            new("Cadena mínima 1B1", "1", "1", "Longitud 3, la mínima posible en L1. Ya genera acarreo y un resultado más largo que los operandos (1 + 1 = 2).", Simulator.Run("1", "1"), true),
+            new("Cadena promedio 101B11", "101", "11", "Operandos de distinta longitud; el acarreo se propaga en las tres columnas (5 + 3 = 8).", Simulator.Run("101", "11"), false),
+        ];
+    }
+}

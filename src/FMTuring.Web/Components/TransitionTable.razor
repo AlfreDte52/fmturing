@@ -1,0 +1,46 @@
+@* Tabla de δ: filas por estado, columnas por símbolo de Γ (Etapa 3 §4). *@
+
+<div class="table-scroll">
+    <table class="delta mono">
+        <caption class="sr-only">Función de transición δ</caption>
+        <thead>
+            <tr>
+                <th scope="col">Estado</th>
+                @foreach (var symbol in Symbols.TapeAlphabet)
+                {
+                    <th scope="col">@symbol</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var state in RowStates)
+            {
+                <tr class="@(state == ActiveState ? "row-active" : null)">
+                    <th scope="row">@state</th>
+                    @foreach (var symbol in Symbols.TapeAlphabet)
+                    {
+                        var found = BinaryAdditionMachine.Definition.TryGetTransition(state, symbol, out var t);
+                        var hl = found && t == Highlight;
+                        <td class="@(hl ? "cell-hl" : found ? null : "cell-empty")">@(found ? $"{t.To}, {t.Write}, {t.Move}" : "—")</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    /// <summary>Transición resaltada.</summary>
+    [Parameter]
+    public Transition? Highlight { get; set; }
+
+    /// <summary>Estado cuya fila se sombrea.</summary>
+    [Parameter]
+    public string? ActiveState { get; set; }
+
+    /// <summary>Filas a mostrar; null muestra los 37 estados.</summary>
+    [Parameter]
+    public IReadOnlyList<string>? States { get; set; }
+
+    private IReadOnlyList<string> RowStates => States ?? BinaryAdditionMachine.States;
+}

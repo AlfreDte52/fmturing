@@ -1,0 +1,136 @@
+@* Diagrama de transiciones completo, generado desde δ (Etapa 5 §5). *@
+@inject IJSRuntime JS
+
+@if (ShowToolbar)
+{
+    <div class="diagram-toolbar">
+        <button type="button" class="btn btn-icon" aria-label="Alejar" @onclick="ZoomOut">−</button>
+        <span class="zoom-value">@((int)Math.Round(_scale * 100))%</span>
+        <button type="button" class="btn btn-icon" aria-label="Acercar" @onclick="ZoomIn">+</button>
+        <button type="button" class="btn" @onclick="Fit">Ajustar</button>
+        <label class="check"><input type="checkbox" @bind="_follow" /> Seguir el estado activo</label>
+    </div>
+}
+
+<div class="diagram-legend">
+    <span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" class="legend-active"></circle></svg> Estado activo</span>
+    <span><svg width="28" height="10" viewBox="0 0 28 10" aria-hidden="true"><path d="M0 5 H22" class="legend-edge"></path><path d="M20 1 L28 5 L20 9 Z" class="legend-head"></path></svg> Transición resaltada</span>
+    <span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" class="legend-node"></circle><circle cx="8" cy="8" r="4.5" class="legend-node"></circle></svg> Estado de aceptación</span>
+    <span>Cada línea de una flecha es una transición: lee, escribe, dirección · B = blanco (□)</span>
+</div>
+
+<div class="diagram-scroll" @ref="_scroller" style="max-height: @(MaxHeight)px">
+    <svg viewBox="0 0 @DiagramLayout.F(DiagramLayout.Width) @DiagramLayout.F(DiagramLayout.Height)"
+         width="@DiagramLayout.F(DiagramLayout.Width * _scale)" height="@DiagramLayout.F(DiagramLayout.Height * _scale)"
+         role="img" aria-label="Diagrama de transiciones: 37 estados y 141 transiciones@(ActiveState is null ? "" : $"; estado activo {ActiveState}")"
+         class="diagram">
+        <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head-normal"></path></marker>
+            <marker id="ah-dark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head-dark"></path></marker>
+            <marker id="ah-hl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" class="head-hl"></path></marker>
+        </defs>
+
+        @foreach (var band in DiagramLayout.Bands)
+        {
+            var current = ActivePhase is not null && band.Phases.Contains(ActivePhase.Value);
+            <g>
+                <rect x="@DiagramLayout.F(band.X)" y="@DiagramLayout.F(band.Y)" width="@DiagramLayout.F(band.Width)" height="@DiagramLayout.F(band.Height)" rx="12" class="@(current ? "band band-on" : "band")"></rect>
+                <text x="@DiagramLayout.F(band.LabelX)" y="@DiagramLayout.F(band.LabelY)" text-anchor="@band.LabelAnchor" class="band-label">@band.Label@(current ? " (fase en curso)" : "")</text>
+            </g>
+        }
+
+        @foreach (var edge in DiagramLayout.Edges)
+        {
+            var hl = IsHighlighted(edge);
+            <path d="@edge.Path" class="@(hl ? "edge edge-hl" : "edge")" marker-end="@(hl ? "url(#ah-hl)" : "url(#ah)")"></path>
+        }
+        <path d="M14 200 L35 200" class="edge-start" marker-end="url(#ah-dark)"></path>
+
+        @foreach (var node in DiagramLayout.Nodes)
+        {
+            var active = node.State == ActiveState;
+            <g>
+                @if (active)
+                {
+                    <circle cx="@DiagramLayout.F(node.X)" cy="@DiagramLayout.F(node.Y)" r="28" class="node-halo"></circle>
+                }
+                <circle cx="@DiagramLayout.F(node.X)" cy="@DiagramLayout.F(node.Y)" r="@DiagramLayout.F(DiagramLayout.Radius)" class="@(active ? "node node-active" : "node")"></circle>
+                @if (node.IsFinal)
+                {
+                    <circle cx="@DiagramLayout.F(node.X)" cy="@DiagramLayout.F(node.Y)" r="17" class="@(active ? "node-inner node-inner-active" : "node-inner")"></circle>
+                }
+                <text x="@DiagramLayout.F(node.X)" y="@DiagramLayout.F(node.Y + 5)" text-anchor="middle" class="@(active ? "node-label node-label-active" : "node-label")">@node.State</text>
+            </g>
+        }
+
+        @foreach (var edge in DiagramLayout.Edges)
+        {
+            <g>
+                <text text-anchor="@edge.Anchor" class="edge-label">
+                    @for (var i = 0; i < edge.Lines.Count; i++)
+                    {
+                        var line = edge.Lines[i];
+                        <tspan x="@DiagramLayout.F(edge.LabelX)" y="@DiagramLayout.F(edge.FirstLineY + i * DiagramLayout.LineHeight)" class="@(line.Transition == Highlight ? "edge-label-hl" : null)">@line.Text</tspan>
+                    }
+                </text>
+            </g>
+        }
+    </svg>
+</div>
+
+@code {
+    private ElementReference _scroller;
+    private double _scale = 1;
+    private bool _follow = true;
+    private string? _lastCentered;
+
+    /// <summary>Estado que se resalta; null para el diagrama sin ejecución.</summary>
+    [Parameter]
+    public string? ActiveState { get; set; }
+
+    /// <summary>Transición que se resalta en su flecha y en su línea del rótulo.</summary>
+    [Parameter]
+    public Transition? Highlight { get; set; }
+
+    /// <summary>Fase en curso, para sombrear su banda.</summary>
+    [Parameter]
+    public Phase? ActivePhase { get; set; }
+
+    [Parameter]
+    public bool ShowToolbar { get; set; } = true;
+
+    [Parameter]
+    public double InitialScale { get; set; } = 0.8;
+
+    [Parameter]
+    public int MaxHeight { get; set; } = 720;
+
+    protected override void OnInitialized() => _scale = InitialScale;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_follow || ActiveState is null || ActiveState == _lastCentered)
+        {
+            return;
+        }
+
+        _lastCentered = ActiveState;
+        var (x, y) = DiagramLayout.PositionOf(ActiveState);
+        await JS.InvokeVoidAsync("fmturing.centerOn", _scroller, x * _scale, y * _scale);
+    }
+
+    private bool IsHighlighted(DiagramEdge edge) =>
+        Highlight is not null && edge.From == Highlight.From && edge.To == Highlight.To;
+
+    private void ZoomIn() => SetScale(_scale + 0.1);
+
+    private void ZoomOut() => SetScale(_scale - 0.1);
+
+    private void Fit() => SetScale(0.6);
+
+    private void SetScale(double scale)
+    {
+        _scale = Math.Clamp(Math.Round(scale, 1), 0.4, 1.6);
+        _lastCentered = null;
+    }
+}

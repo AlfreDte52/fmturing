@@ -1,0 +1,16 @@
+@* Video explicativo incrustado (RS-13, E-10). El enlace se configura en SiteConfig. *@
+
+<div class="video-frame">
+    @if (string.IsNullOrWhiteSpace(SiteConfig.VideoEmbedUrl))
+    {
+        <div class="video-placeholder" role="img" aria-label="Espacio reservado para el video">
+            <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"></circle><path d="M26 21l18 11-18 11z"></path></svg>
+            <span>El video se incrustará aquí (YouTube, no listado).</span>
+        </div>
+    }
+    else
+    {
+        <iframe src="@SiteConfig.VideoEmbedUrl" title="Video explicativo de FMTURING" loading="lazy"
+                allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    }
+</div>

@@ -1,0 +1,144 @@
+﻿@page "/"
+@implements IDisposable
+@inject SimulationPlayer Player
+
+<PageTitle>FMTURING · Simulador</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Simulación paso a paso</div>
+        <h1>Suma binaria en una máquina de Turing</h1>
+    </div>
+    <p class="lead">La cinta y el autómata se mueven juntos: cada paso aplica una transición de δ, y la animación muestra qué se leyó, qué se escribió y hacia dónde se movió el cabezal.</p>
+</section>
+
+<InputPanel />
+
+@if (Player.Trace is not null && Player.Frame is { } frame)
+{
+    <section class="card stage" aria-label="Cinta">
+        <div class="stage-head">
+            <div class="state-badge-row">
+                <div class="state-badge" aria-label="Estado actual">
+                    <span>estado</span>
+                    <b>@frame.State</b>
+                </div>
+                <div>
+                    <div class="stage-phase">@PhaseInfo.Name(frame.Phase)</div>
+                    <div class="muted">@frame.Explanation</div>
+                </div>
+            </div>
+            <div class="progress-box">
+                <div class="progress-text mono"><span>Paso @frame.Index de @Player.Trace.StepCount</span><span>@(Player.IsPlaying ? "reproduciendo" : "en pausa")</span></div>
+                <div class="progress"><div class="progress-bar" style="width: @ProgressPercent%"></div></div>
+            </div>
+        </div>
+
+        <TapeView Frame="frame" Min="Player.MinPosition" Max="Player.MaxPosition" />
+        <p class="tape-caption">El cabezal queda fijo en el centro y la cinta se desplaza bajo él. Celda sombreada: la recién escrita. Vacía = B · X = 0 sumado · Y = 1 sumado.</p>
+
+        <StepBeats Frame="frame" />
+
+        @if (frame.Transition is not null)
+        {
+            <div class="rule-banner">
+                <span class="mono rule">@frame.Transition</span>
+                <span>@frame.Explanation</span>
+            </div>
+        }
+
+        <PlaybackControls />
+    </section>
+
+    <section class="card" aria-label="Autómata">
+        <div class="section-head">
+            <div>
+                <h2>Diagrama de transiciones</h2>
+                <p class="muted">37 estados y 141 transiciones. El estado activo y la transición en curso se resaltan.</p>
+            </div>
+        </div>
+        <StateDiagram ActiveState="@frame.State" Highlight="@frame.Transition" ActivePhase="@(frame.Phase ?? (frame.Index == 0 ? Phase.A : null))" />
+        @if (frame.Transition is not null)
+        {
+            <p class="muted small">@(frame.Beat == StepBeat.Movimiento ? "Aplicada" : "Aplicando"): <b class="mono accent">@frame.Transition</b></p>
+        }
+    </section>
+
+    <section class="grid-3">
+        <div class="card">
+            <h2 class="h3">Regla en la tabla δ</h2>
+            <TransitionTable Highlight="@frame.Transition" ActiveState="@frame.Transition?.From" States="@NearbyStates(frame)" />
+            <p class="muted small">Filas cercanas a la regla resaltada. La tabla completa está en <a href="maquina">La máquina</a>.</p>
+        </div>
+        <div class="card">
+            <h2 class="h3">Descripciones instantáneas</h2>
+            <TraceTable Trace="Player.Trace" Current="frame.Index" OnSelect="Player.GoTo" />
+            <p class="muted small"><a href="evaluacion">Ver las DI completas de las cadenas de evaluación</a></p>
+        </div>
+        <ResultCard Trace="Player.Trace" Current="frame.Index" />
+    </section>
+}
+
+<section class="card video-section">
+    <div>
+        <h2 class="h3">Video explicativo</h2>
+        <p class="muted">Presentación del proyecto: descripción formal, cadenas evaluadas, demostración de la simulación y hallazgos.</p>
+    </div>
+    <VideoEmbed />
+</section>
+
+@code {
+    [SupplyParameterFromQuery(Name = "x")]
+    public string? QueryX { get; set; }
+
+    [SupplyParameterFromQuery(Name = "y")]
+    public string? QueryY { get; set; }
+
+    private double ProgressPercent =>
+        Player.Trace is null || Player.Trace.StepCount == 0 ? 0 : 100.0 * Player.Index / Player.Trace.StepCount;
+
+    protected override void OnInitialized()
+    {
+        Player.Changed += OnPlayerChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var x = QueryX ?? (Player.Trace is null ? "101" : Player.X);
+        var y = QueryY ?? (Player.Trace is null ? "11" : Player.Y);
+        if (Player.Trace is null || x != Player.X || y != Player.Y)
+        {
+            Player.Load(x, y);
+        }
+    }
+
+    private static IReadOnlyList<string> NearbyStates(TapeFrame frame)
+    {
+        var center = frame.Transition?.From ?? frame.State;
+        var states = BinaryAdditionMachine.States;
+        var i = Math.Max(0, IndexOf(states, center));
+        var from = Math.Clamp(i - 2, 0, Math.Max(0, states.Count - 5));
+        return states.Skip(from).Take(5).ToList();
+    }
+
+    private static int IndexOf(IReadOnlyList<string> list, string value)
+    {
+        for (var i = 0; i < list.Count; i++)
+        {
+            if (list[i] == value)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private void OnPlayerChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Player.Changed -= OnPlayerChanged;
+        Player.Stop();
+    }
+}

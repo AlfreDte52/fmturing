@@ -1,0 +1,72 @@
+@* Entrada de los operandos y ejemplos precargados (RF-11, RS-12, DA-11). *@
+@inject SimulationPlayer Player
+@inject NavigationManager Navigation
+
+<form class="card input-panel" @onsubmit="Load" @onsubmit:preventDefault>
+    <div class="field">
+        <label for="op-x">Primer operando (x)</label>
+        <input id="op-x" class="input mono" inputmode="numeric" autocomplete="off" maxlength="16" @bind="_x" />
+    </div>
+    <span class="separator-chip" title="El separador es el símbolo blanco B">B</span>
+    <div class="field">
+        <label for="op-y">Segundo operando (y)</label>
+        <input id="op-y" class="input mono" inputmode="numeric" autocomplete="off" maxlength="16" @bind="_y" />
+    </div>
+    <button type="submit" class="btn btn-primary">Cargar</button>
+    <div class="examples">
+        <span class="muted small">Ejemplos:</span>
+        @foreach (var example in Examples)
+        {
+            <button type="button" class="@(example.Rejects ? "chip chip-bad" : "chip")" title="@example.Title" @onclick="() => Use(example)">@example.Label</button>
+        }
+    </div>
+    @if (Player.Errors.Count > 0)
+    {
+        <ul class="errors" role="alert">
+            @foreach (var error in Player.Errors)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    }
+</form>
+
+@code {
+    private sealed record Example(string X, string Y, string Label, string Title, bool Rejects = false);
+
+    private static readonly Example[] Examples =
+    [
+        new("1", "1", "1 + 1", "Cadena mínima 1B1: 54 pasos"),
+        new("101", "11", "101 + 11", "Cadena promedio 101B11: 179 pasos"),
+        new("0011", "1", "0011 + 1", "Ceros a la izquierda: el resultado se normaliza"),
+        new("11111111", "1", "11111111 + 1", "Acarreo en todas las columnas"),
+        new("", "11", "x vacío", "La máquina rechaza en q0", true),
+        new("101", "", "y vacío", "La máquina rechaza en q2", true),
+    ];
+
+    private string _x = string.Empty;
+    private string _y = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        _x = Player.X;
+        _y = Player.Y;
+    }
+
+    private void Load()
+    {
+        var x = (_x ?? string.Empty).Trim();
+        var y = (_y ?? string.Empty).Trim();
+        if (Player.Load(x, y))
+        {
+            Navigation.NavigateTo($"?x={Uri.EscapeDataString(x)}&y={Uri.EscapeDataString(y)}", replace: true);
+        }
+    }
+
+    private void Use(Example example)
+    {
+        _x = example.X;
+        _y = example.Y;
+        Load();
+    }
+}

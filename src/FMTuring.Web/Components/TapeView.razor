@@ -1,0 +1,67 @@
+@* Cinta: el cabezal queda fijo en el centro y la cinta se desplaza bajo él (Etapa 5 §6). *@
+
+<div class="tape-window" role="img" aria-label="@AriaLabel">
+    <div class="tape-strip" style="transform: translateX(calc(-1 * (@Offset + 0.5) * var(--cell)))">
+        @for (var p = Min; p <= Max; p++)
+        {
+            var position = p;
+            var symbol = Frame.Cells.TryGetValue(position, out var c) ? c : Symbols.Blank;
+            <div @key="position" class="@CellClass(position, symbol)">@(symbol == Symbols.Blank ? "" : symbol.ToString())</div>
+        }
+    </div>
+    <div class="tape-head" aria-hidden="true">
+        <svg width="22" height="14" viewBox="0 0 22 14"><path d="M11 0 L22 14 L0 14 Z"></path></svg>
+        <span>cabezal</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TapeFrame Frame { get; set; } = default!;
+
+    [Parameter]
+    public long Min { get; set; }
+
+    [Parameter]
+    public long Max { get; set; }
+
+    private long Offset => Frame.Head - Min;
+
+    private string AriaLabel
+    {
+        get
+        {
+            var under = Frame.Cells.TryGetValue(Frame.Head, out var c) ? c : Symbols.Blank;
+            return $"Cinta. El cabezal está sobre {under} en el estado {Frame.State}.";
+        }
+    }
+
+    private string CellClass(long position, char symbol)
+    {
+        var css = "cell";
+        if (symbol == Symbols.Blank)
+        {
+            css += " cell-blank";
+        }
+        else if (symbol is Symbols.MarkedZero or Symbols.MarkedOne)
+        {
+            css += " cell-mark";
+        }
+        else if (symbol is Symbols.Plus or Symbols.EqualsSign)
+        {
+            css += " cell-op";
+        }
+
+        if (position == Frame.Head)
+        {
+            css += Frame.Beat == StepBeat.Lectura ? " cell-head cell-reading" : " cell-head";
+        }
+
+        if (position == Frame.WrittenPosition)
+        {
+            css += Frame.Beat == StepBeat.Escritura ? " cell-flash" : " cell-written";
+        }
+
+        return css;
+    }
+}

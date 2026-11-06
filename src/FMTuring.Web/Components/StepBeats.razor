@@ -1,0 +1,39 @@
+@* Los tres tiempos de un paso: lectura, escritura y movimiento. *@
+
+<div class="beats">
+    <div class="@BeatClass(StepBeat.Lectura)">
+        <span class="beat-title">1 · Lectura</span>
+        <span class="beat-value">@(T is null ? "—" : $"leyó {T.Read}")</span>
+        <span class="beat-note">celda resaltada; la regla se ilumina en δ y en el diagrama</span>
+    </div>
+    <div class="@BeatClass(StepBeat.Escritura)">
+        <span class="beat-title">2 · Escritura</span>
+        <span class="beat-value">@(T is null ? "—" : $"escribió {T.Write}")</span>
+        <span class="beat-note">la celda destella si cambia de símbolo</span>
+    </div>
+    <div class="@BeatClass(StepBeat.Movimiento)">
+        <span class="beat-title">3 · Movimiento</span>
+        <span class="beat-value">@(T is null ? "—" : MoveText(T.Move))</span>
+        <span class="beat-note">la cinta se desplaza bajo el cabezal</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public TapeFrame Frame { get; set; } = default!;
+
+    private Transition? T => Frame.Transition;
+
+    private string BeatClass(StepBeat beat)
+    {
+        var active = T is not null && Frame.Beat == beat;
+        return active ? "beat beat-on" : "beat";
+    }
+
+    private static string MoveText(Move move) => move switch
+    {
+        Move.L => "movió L",
+        Move.R => "movió R",
+        _ => "permaneció (S)",
+    };
+}

@@ -1,0 +1,104 @@
+@page "/formal"
+
+<PageTitle>FMTURING · Descripción formal</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Escritura formal</div>
+        <h1>Descripción formal del autómata</h1>
+    </div>
+    <p class="lead">Máquina de Turing determinista de una cinta, infinita en ambos sentidos, que acepta dos números binarios separados por un blanco y deja en la cinta la operación x + y = z.</p>
+</section>
+
+<section class="card">
+    <h2>1. La máquina como séptupla</h2>
+    <div class="formula">M = (Q, Σ, Γ, δ, q0, B, F)</div>
+    <div class="tiles">
+        <div class="tile"><b class="mono accent">Q</b><span class="mono">{@string.Join(", ", First(4))}, …, q35, qf}</span><span class="muted">@M.States.Count estados, agrupados en cinco fases</span></div>
+        <div class="tile"><b class="mono accent">Σ</b><span class="mono">{@string.Join(", ", M.InputAlphabet)}}</span><span class="muted">Alfabeto de entrada</span></div>
+        <div class="tile"><b class="mono accent">Γ</b><span class="mono">{@string.Join(", ", M.TapeAlphabet)}}</span><span class="muted">Alfabeto de cinta; X y Y marcan bits ya sumados</span></div>
+        <div class="tile"><b class="mono accent">δ</b><span class="mono">Q × Γ → Q × Γ × {L, R, S}</span><span class="muted">Función parcial: @M.Transitions.Count transiciones (<a href="maquina">ver tabla</a>)</span></div>
+        <div class="tile"><b class="mono accent">q0</b><span class="mono">@M.InitialState</span><span class="muted">Estado inicial</span></div>
+        <div class="tile"><b class="mono accent">B</b><span class="mono">B ∈ Γ − Σ</span><span class="muted">Símbolo blanco, también separador de los operandos</span></div>
+        <div class="tile"><b class="mono accent">F</b><span class="mono">{@string.Join(", ", M.FinalStates)}}</span><span class="muted">Estado de aceptación</span></div>
+    </div>
+</section>
+
+<section class="grid-2">
+    <div class="card">
+        <h2>2. Lenguaje de entrada</h2>
+        <div class="formula small-formula">Σ_E = Σ ∪ {B} = {0, 1, B}</div>
+        <div class="formula small-formula">L1 = { x B y | x, y ∈ {0,1}⁺ }</div>
+        <p>Se aceptan ceros a la izquierda. Como el separador es el mismo blanco que llena la cinta, la máquina no puede distinguir un segundo blanco interno del final de la entrada; por eso el modelo de entrada admite un solo B:</p>
+        <div class="formula small-formula">D = { w ∈ Σ_E* | |w|_B ≤ 1 },  L(M) ∩ D = L1</div>
+    </div>
+    <div class="card">
+        <h2>3. Expresión regular</h2>
+        <div class="formula">(0+1)(0+1)* B (0+1)(0+1)*</div>
+        <p>El factor (0+1)(0+1)* genera exactamente {0,1}⁺: un primer bit obligatorio seguido de cero o más bits. Ejemplos: 1B1 = 1 · B · 1 y 101B11 = 101 · B · 11.</p>
+        <p class="muted">En la expresión regular, + es unión. No se confunde con el símbolo de cinta +, que nunca aparece en la entrada.</p>
+    </div>
+</section>
+
+<section class="card grid-2-inner">
+    <div>
+        <h2>4. Gramática G2</h2>
+        <div class="mono muted">G2 = ({S, N, K}, {0, 1, B}, P, S)</div>
+        <ul class="productions mono">
+            <li><span>(1)</span> S → N B N</li>
+            <li><span>(2)</span> N → K N</li>
+            <li><span>(3)</span> N → K</li>
+            <li><span>(4)</span> K → 0</li>
+            <li><span>(5)</span> K → 1</li>
+        </ul>
+        <p class="muted">Los no terminales evitan la letra B, que es el blanco (terminal). N genera {0,1}⁺, así que L(G2) = L1.</p>
+    </div>
+    <div>
+        <h3>Derivación por la izquierda de 101B11</h3>
+        <div class="table-scroll">
+            <table class="simple">
+                <thead><tr><th scope="col">Paso</th><th scope="col">Forma sentencial</th><th scope="col">Producción</th></tr></thead>
+                <tbody>
+                    @foreach (var (step, form, production) in Derivation)
+                    {
+                        <tr><td>@step</td><td class="mono strong">@form</td><td class="mono">@production</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="muted small">Cadena mínima: S ⇒ NBN ⇒ KBN ⇒ 1BN ⇒ 1BK ⇒ 1B1.</p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>5. Aceptación, rechazo y función calculada</h2>
+    <div class="formula">f(x B y) = x + y = z,   z = bin(val(x) + val(y))</div>
+    <div class="tiles">
+        <div class="tile tile-ok"><b>Aceptación</b><span>Llega a qf con movimiento S. Ejemplo: 1B1 deja 1+1=10.</span></div>
+        <div class="tile tile-bad"><b>Rechazo en q0</b><span>Primer operando vacío: no hay transición con B. Ejemplo: B11.</span></div>
+        <div class="tile tile-bad"><b>Rechazo en q2</b><span>Sin separador o segundo operando vacío. Ejemplos: 101, 10B.</span></div>
+    </div>
+    <p>La cinta final x+y=z no forma un lenguaje regular (se demuestra con el lema de bombeo usando 10ᵖ+0=10ᵖ). Por eso la gramática y la expresión regular describen la entrada, y la corrección de la suma la demuestran las <a href="evaluacion">descripciones instantáneas</a>.</p>
+</section>
+
+@code {
+    private static readonly TuringMachineDefinition M = BinaryAdditionMachine.Definition;
+
+    private static IEnumerable<string> First(int n) => M.States.Take(n);
+
+    private static readonly (string Step, string Form, string Production)[] Derivation =
+    [
+        ("0", "S", "—"),
+        ("1", "N B N", "(1)"),
+        ("2", "K N B N", "(2)"),
+        ("3", "1 N B N", "(5)"),
+        ("4", "1 K N B N", "(2)"),
+        ("5", "1 0 N B N", "(4)"),
+        ("6", "1 0 K B N", "(3)"),
+        ("7", "1 0 1 B N", "(5)"),
+        ("8", "1 0 1 B K N", "(2)"),
+        ("9", "1 0 1 B 1 N", "(5)"),
+        ("10", "1 0 1 B 1 K", "(3)"),
+        ("11", "1 0 1 B 1 1", "(5)"),
+    ];
+}

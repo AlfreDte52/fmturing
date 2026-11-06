@@ -1,0 +1,67 @@
+@implements IDisposable
+@inject SimulationPlayer Player
+@inject IJSRuntime JS
+
+<div class="controls">
+    <button type="button" class="btn" @onclick="Player.Reset" disabled="@(Player.Trace is null)">Reiniciar</button>
+    <button type="button" class="btn" @onclick="Player.StepBack" disabled="@(Player.Trace is null || Player.Index == 0)">◀ Atrás</button>
+    <button type="button" class="btn btn-primary" @onclick="Player.TogglePlay" disabled="@(Player.Trace is null)">@(Player.IsPlaying ? "Pausar" : "Reproducir")</button>
+    <button type="button" class="btn" @onclick="Player.StepAsync" disabled="@(Player.Trace is null || Player.AtEnd)">Paso ▶</button>
+    <label for="speed" class="controls-label">Velocidad</label>
+    <select id="speed" class="select" value="@Player.Speed" @onchange="OnSpeedChanged">
+        <option value="@PlaybackSpeed.Lenta">Lenta</option>
+        <option value="@PlaybackSpeed.Normal">Normal</option>
+        <option value="@PlaybackSpeed.Rapida">Rápida</option>
+        <option value="@PlaybackSpeed.Inmediata">Inmediata</option>
+    </select>
+    <span class="hint">Espacio: reproducir o pausar · ← →: paso</span>
+</div>
+
+@code {
+    private DotNetObjectReference<PlaybackControls>? _self;
+
+    protected override void OnInitialized() => Player.Changed += OnChanged;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _self = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("fmturing.registerKeys", _self);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnKey(string key)
+    {
+        switch (key)
+        {
+            case "space":
+                Player.TogglePlay();
+                break;
+            case "right":
+                await Player.StepAsync();
+                break;
+            case "left":
+                Player.StepBack();
+                break;
+        }
+    }
+
+    private void OnSpeedChanged(ChangeEventArgs e)
+    {
+        if (Enum.TryParse<PlaybackSpeed>(e.Value?.ToString(), out var speed))
+        {
+            Player.Speed = speed;
+        }
+    }
+
+    private void OnChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Player.Changed -= OnChanged;
+        _ = JS.InvokeVoidAsync("fmturing.unregisterKeys").AsTask().ContinueWith(_ => { });
+        _self?.Dispose();
+    }
+}

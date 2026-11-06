@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FMTuring.Core/FMTuring.Core.csproj" />
+    <Project Path="src/FMTuring.Web/FMTuring.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FMTuring.Core.Tests/FMTuring.Core.Tests.csproj" />
+  </Folder>
+</Solution>
