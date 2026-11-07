@@ -9,7 +9,7 @@ public static class SiteConfig
     /// Enlace de inserción del video de YouTube (no listado), por ejemplo
     /// https://www.youtube-nocookie.com/embed/ID_DEL_VIDEO. Vacío muestra un espacio reservado.
     /// </summary>
-    public const string VideoEmbedUrl = "";
+    public const string VideoEmbedUrl = "https://www.youtube-nocookie.com/embed/-F4bYEG7ok8";
 
     /// <summary>Repositorio del proyecto.</summary>
     public const string RepositoryUrl = "https://github.com/AlfreDte52/fmturing";
