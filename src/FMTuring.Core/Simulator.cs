@@ -74,4 +74,39 @@ public sealed class Simulator
 
         return new ExecutionTrace(input, steps, outcome, tape.Content());
     }
+
+    /// <summary>
+    /// Ejecuta la máquina sin guardar la traza: solo cuenta los pasos. Sirve para cadenas
+    /// cuya traza completa no conviene guardar (la variante por conteo con 16 bits da
+    /// millones de pasos).
+    /// </summary>
+    public (ExecutionOutcome Outcome, int Steps, string FinalTape) Count(string input, int maxSteps)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        var tape = new Tape(input);
+        var state = _machine.InitialState;
+        var steps = 0;
+        while (true)
+        {
+            if (_machine.FinalStates.Contains(state))
+            {
+                return (ExecutionOutcome.Accepted, steps, tape.Content());
+            }
+
+            if (steps >= maxSteps)
+            {
+                return (ExecutionOutcome.StepLimitReached, steps, tape.Content());
+            }
+
+            if (!_machine.TryGetTransition(state, tape.Read(), out var t))
+            {
+                return (ExecutionOutcome.Rejected, steps, tape.Content());
+            }
+
+            tape.Write(t.Write);
+            tape.MoveHead(t.Move);
+            state = t.To;
+            steps++;
+        }
+    }
 }

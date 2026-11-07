@@ -20,9 +20,9 @@
 </div>
 
 <div class="diagram-scroll" @ref="_scroller" style="max-height: @(MaxHeight)px">
-    <svg viewBox="0 0 @DiagramLayout.F(DiagramLayout.Width) @DiagramLayout.F(DiagramLayout.Height)"
-         width="@DiagramLayout.F(DiagramLayout.Width * _scale)" height="@DiagramLayout.F(DiagramLayout.Height * _scale)"
-         role="img" aria-label="Diagrama de transiciones: 37 estados y 141 transiciones@(ActiveState is null ? "" : $"; estado activo {ActiveState}")"
+    <svg viewBox="0 0 @DiagramLayout.F(Layout.Width) @DiagramLayout.F(Layout.Height)"
+         width="@DiagramLayout.F(Layout.Width * _scale)" height="@DiagramLayout.F(Layout.Height * _scale)"
+         role="img" aria-label="Diagrama de transiciones: @Layout.StateCount estados y @Layout.TransitionCount transiciones@(ActiveState is null ? "" : $"; estado activo {ActiveState}")"
          class="diagram">
         <defs>
             <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="head-normal"></path></marker>
@@ -30,7 +30,7 @@
             <marker id="ah-hl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" class="head-hl"></path></marker>
         </defs>
 
-        @foreach (var band in DiagramLayout.Bands)
+        @foreach (var band in Layout.Bands)
         {
             var current = ActivePhase is not null && band.Phases.Contains(ActivePhase.Value);
             <g>
@@ -39,14 +39,14 @@
             </g>
         }
 
-        @foreach (var edge in DiagramLayout.Edges)
+        @foreach (var edge in Layout.Edges)
         {
             var hl = IsHighlighted(edge);
             <path d="@edge.Path" class="@(hl ? "edge edge-hl" : "edge")" marker-end="@(hl ? "url(#ah-hl)" : "url(#ah)")"></path>
         }
-        <path d="M14 200 L35 200" class="edge-start" marker-end="url(#ah-dark)"></path>
+        <path d="@Layout.StartArrow" class="edge-start" marker-end="url(#ah-dark)"></path>
 
-        @foreach (var node in DiagramLayout.Nodes)
+        @foreach (var node in Layout.Nodes)
         {
             var active = node.State == ActiveState;
             <g>
@@ -63,7 +63,7 @@
             </g>
         }
 
-        @foreach (var edge in DiagramLayout.Edges)
+        @foreach (var edge in Layout.Edges)
         {
             <g>
                 <text text-anchor="@edge.Anchor" class="edge-label">
@@ -96,6 +96,14 @@
     [Parameter]
     public Phase? ActivePhase { get; set; }
 
+    /// <summary>Disposición del diagrama; por omisión, la máquina completa.</summary>
+    [Parameter]
+    public DiagramLayout Layout { get; set; } = DiagramLayout.Full;
+
+    /// <summary>Escala de «Ajustar».</summary>
+    [Parameter]
+    public double FitScale { get; set; } = 0.6;
+
     [Parameter]
     public bool ShowToolbar { get; set; } = true;
 
@@ -115,7 +123,7 @@
         }
 
         _lastCentered = ActiveState;
-        var (x, y) = DiagramLayout.PositionOf(ActiveState);
+        var (x, y) = Layout.PositionOf(ActiveState);
         await JS.InvokeVoidAsync("fmturing.centerOn", _scroller, x * _scale, y * _scale);
     }
 
@@ -126,7 +134,7 @@
 
     private void ZoomOut() => SetScale(_scale - 0.1);
 
-    private void Fit() => SetScale(0.6);
+    private void Fit() => SetScale(FitScale);
 
     private void SetScale(double scale)
     {

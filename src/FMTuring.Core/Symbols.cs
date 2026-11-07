@@ -26,6 +26,9 @@ public static class Symbols
     /// <summary>Marca de un bit 1 ya sumado.</summary>
     public const char MarkedOne = 'Y';
 
+    /// <summary>Marca del separador en la variante por conteo (CountingAdditionMachine).</summary>
+    public const char Hash = '#';
+
     /// <summary>Alfabeto de entrada Σ = {0, 1}.</summary>
     public static IReadOnlyList<char> InputAlphabet { get; } = [Zero, One];
 

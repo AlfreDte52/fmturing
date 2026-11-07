@@ -9,10 +9,10 @@
         <div class="eyebrow">Simulación paso a paso</div>
         <h1>Suma binaria en una máquina de Turing</h1>
     </div>
-    <p class="lead">La cinta y el autómata se mueven juntos: cada paso aplica una transición de δ, y la animación muestra qué se leyó, qué se escribió y hacia dónde se movió el cabezal.</p>
+    <p class="lead">La cinta y el autómata se mueven juntos: cada paso aplica una transición de δ, y la animación muestra qué se leyó, qué se escribió y hacia dónde se movió el cabezal. Si es la primera vez, empieza por la <a href="introduccion">introducción</a>: una versión de 11 estados que suma contando.</p>
 </section>
 
-<InputPanel />
+<InputPanel Player="Player" />
 
 @if (Player.Trace is not null && Player.Frame is { } frame)
 {
@@ -47,7 +47,7 @@
             </div>
         }
 
-        <PlaybackControls />
+        <PlaybackControls Player="Player" />
     </section>
 
     <section class="card" aria-label="Autómata">

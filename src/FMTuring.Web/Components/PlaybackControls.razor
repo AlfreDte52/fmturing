@@ -1,5 +1,4 @@
 @implements IDisposable
-@inject SimulationPlayer Player
 @inject IJSRuntime JS
 
 <div class="controls">
@@ -18,6 +17,10 @@
 </div>
 
 @code {
+    /// <summary>Reproductor que controlan los botones y el teclado.</summary>
+    [Parameter, EditorRequired]
+    public SimulationPlayer Player { get; set; } = default!;
+
     private DotNetObjectReference<PlaybackControls>? _self;
 
     protected override void OnInitialized() => Player.Changed += OnChanged;

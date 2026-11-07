@@ -1,0 +1,255 @@
+@page "/introduccion"
+@implements IDisposable
+
+<PageTitle>FMTURING · Introducción</PageTitle>
+
+<section class="hero">
+    <div>
+        <div class="eyebrow">Introducción · Variante por conteo</div>
+        <h1>Primero, la idea más simple: sumar contando</h1>
+    </div>
+    <p class="lead">Antes de la máquina completa, una máquina de 11 estados que suma sin columnas ni acarreos: resta 1 a N2 y suma 1 a N1, una y otra vez, hasta que N2 vale 0. Sirve para ver cómo trabaja una máquina de Turing y por qué la máquina completa necesita más estados.</p>
+</section>
+
+<section class="card">
+    <h2>La idea en tres fases</h2>
+    <ol class="phases">
+        <li><b>A · Validación (q0–q3).</b> Recorre N1 y N2 y exige al menos un dígito en cada uno. Cambia el blanco separador por #, para distinguirlo del blanco del final de la cinta.</li>
+        <li><b>B · Ciclo (q4, q5, q8, q9).</b> En cada vuelta resta 1 a N2 (q4, con préstamo) y suma 1 a N1 (q8, con acarreo). El ciclo se repite tantas veces como <b>vale</b> N2.</li>
+        <li><b>C · Limpieza (q6, q7).</b> Cuando N2 llega a 0, borra el # y N2, regresa al último dígito del resultado y acepta en q10.</li>
+    </ol>
+</section>
+
+<InputPanel Player="_player" Examples="Examples" />
+
+@if (_player.Trace is not null && _player.Frame is { } frame)
+{
+    <section class="card stage" aria-label="Cinta de la variante">
+        <div class="stage-head">
+            <div class="state-badge-row">
+                <div class="state-badge" aria-label="Estado actual">
+                    <span>estado</span>
+                    <b>@frame.State</b>
+                </div>
+                <div>
+                    <div class="stage-phase">@CountingPhaseInfo.Name(frame.Phase)</div>
+                    <div class="muted">@frame.Explanation</div>
+                    <div class="muted small">Vueltas completas del ciclo: <b class="mono">@CountingAdditionMachine.LapsUpTo(_player.Trace, frame.Index)</b></div>
+                </div>
+            </div>
+            <div class="progress-box">
+                <div class="progress-text mono"><span>Paso @frame.Index de @_player.Trace.StepCount</span><span>@(_player.IsPlaying ? "reproduciendo" : "en pausa")</span></div>
+                <div class="progress"><div class="progress-bar" style="width: @ProgressPercent%"></div></div>
+            </div>
+        </div>
+
+        <TapeView Frame="frame" Min="_player.MinPosition" Max="_player.MaxPosition" />
+        <p class="tape-caption">El cabezal queda fijo en el centro y la cinta se desplaza bajo él. Celda sombreada: la recién escrita. Vacía = B · # = separador marcado.</p>
+
+        <StepBeats Frame="frame" />
+
+        @if (frame.Transition is not null)
+        {
+            <div class="rule-banner">
+                <span class="mono rule">@frame.Transition</span>
+                <span>@frame.Explanation</span>
+            </div>
+        }
+
+        <PlaybackControls Player="_player" />
+    </section>
+
+    <section class="card" aria-label="Autómata de la variante">
+        <div class="section-head">
+            <div>
+                <h2>Diagrama de transiciones</h2>
+                <p class="muted">11 estados y 29 transiciones, en 19 flechas. El estado activo y la transición en curso se resaltan.</p>
+            </div>
+        </div>
+        <StateDiagram Layout="DiagramLayout.Counting" ActiveState="@frame.State" Highlight="@frame.Transition" ActivePhase="@(frame.Phase ?? (frame.Index == 0 ? Phase.A : null))" InitialScale="1" FitScale="0.8" MaxHeight="560" />
+    </section>
+
+    <section class="grid-3">
+        <div class="card">
+            <h2 class="h3">Tabla δ</h2>
+            <TransitionTable Machine="CountingAdditionMachine.Definition" Highlight="@frame.Transition" ActiveState="@frame.Transition?.From" />
+        </div>
+        <div class="card">
+            <h2 class="h3">Descripciones instantáneas</h2>
+            <TraceTable Trace="_player.Trace" Current="frame.Index" OnSelect="_player.GoTo" />
+        </div>
+        <ResultCard Trace="_player.Trace" Current="frame.Index" X="@_player.X" Y="@_player.Y" />
+    </section>
+}
+
+<section class="card">
+    <h2>Descripción formal de la variante</h2>
+    <div class="formula">M₀ = (Q, Σ, Γ, δ, q0, B, F)</div>
+    <div class="tiles">
+        <div class="tile"><b class="mono accent">Q</b><span class="mono">{q0, q1, …, q9, q10}</span><span class="muted">@M.States.Count estados</span></div>
+        <div class="tile"><b class="mono accent">Σ</b><span class="mono">{@string.Join(", ", M.InputAlphabet)}</span><span class="muted">Alfabeto de entrada</span></div>
+        <div class="tile"><b class="mono accent">Γ</b><span class="mono">{@string.Join(", ", M.TapeAlphabet)}</span><span class="muted"># marca el separador</span></div>
+        <div class="tile"><b class="mono accent">δ</b><span class="mono">Q × Γ → Q × Γ × {L, R, S}</span><span class="muted">@M.Transitions.Count transiciones</span></div>
+        <div class="tile"><b class="mono accent">q0</b><span class="mono">@M.InitialState</span><span class="muted">Estado inicial</span></div>
+        <div class="tile"><b class="mono accent">B</b><span class="mono">B ∈ Γ − Σ</span><span class="muted">Blanco y separador de la entrada</span></div>
+        <div class="tile"><b class="mono accent">F</b><span class="mono">{@string.Join(", ", M.FinalStates)}</span><span class="muted">Estado de aceptación</span></div>
+    </div>
+    <div class="grid-2-inner">
+        <div>
+            <h3>Lenguaje y expresión regular</h3>
+            <div class="formula small-formula">L = { x B y | x, y ∈ {0,1}⁺ }</div>
+            <div class="formula small-formula">(0+1)(0+1)* B (0+1)(0+1)*</div>
+            <p class="muted">Es el mismo lenguaje de entrada que el de la máquina completa. Lo que cambia es la función calculada: aquí la cinta final solo contiene z = x + y.</p>
+        </div>
+        <div>
+            <h3>Notación</h3>
+            <p class="muted">Se usa la misma notación que en el resto del sitio: el blanco se escribe B y pertenece a Γ, ε queda para la cadena vacía, y la función extendida de una máquina de Turing es ⊢*, la secuencia de descripciones instantáneas. Así, la cadena mínima cumple</p>
+            <div class="formula small-formula">@Min.Steps[0].Description ⊢<sup>@Min.StepCount</sup> @Min.Last.Description</div>
+        </div>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Estados, función y grados</h2>
+    <p class="muted">Cada columna de grados suma @M.Transitions.Count. q9 tiene el mayor grado porque recorre la cinta en cada vuelta.</p>
+    <div class="table-scroll">
+        <table class="simple">
+            <thead><tr><th scope="col">Estado</th><th scope="col">Fase</th><th scope="col">Función</th><th scope="col">Entrada</th><th scope="col">Salida</th></tr></thead>
+            <tbody>
+                @foreach (var state in M.States)
+                {
+                    <tr>
+                        <th scope="row" class="mono">@state</th>
+                        <td>@(CountingAdditionMachine.PhaseOf(state)?.ToString() ?? "—")</td>
+                        <td>@CountingAdditionMachine.RoleOf(state)</td>
+                        <td class="mono">@M.InDegree(state)</td>
+                        <td class="mono">@M.OutDegree(state)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+@foreach (var e in _evaluations)
+{
+    <section class="card">
+        <details>
+            <summary><h2 class="inline-h">DI de @e.Title: @e.Trace.StepCount pasos</h2></summary>
+            <div class="table-scroll tall">
+                <table class="simple mono-cells">
+                    <thead><tr><th scope="col">Paso</th><th scope="col">Transición aplicada</th><th scope="col">DI resultante</th><th scope="col">Qué hace</th></tr></thead>
+                    <tbody>
+                        @foreach (var step in e.Trace.Steps)
+                        {
+                            <tr>
+                                <td>@step.Index</td>
+                                <td class="mono">@(step.Transition?.ToString() ?? "—")</td>
+                                <td class="mono">@step.Description</td>
+                                <td>@step.Explanation</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </section>
+}
+
+<section class="card">
+    <h2>¿Por qué no basta con esta máquina?</h2>
+    <p>Con números pequeños, la variante es más corta y más fácil de seguir. Pero el ciclo se repite tantas veces como vale N2, y cada vuelta recorre la cinta: al agregar un bit, los pasos se multiplican por dos. La máquina completa suma columna por columna, así que sus pasos crecen con la longitud y no con el valor.</p>
+    <div class="table-scroll">
+        <table class="simple">
+            <thead><tr><th scope="col">Entrada</th><th scope="col">Variante por conteo (11 estados)</th><th scope="col">Máquina completa (37 estados)</th></tr></thead>
+            <tbody>
+                @foreach (var row in Comparison)
+                {
+                    <tr>
+                        <td class="mono">@row.Input</td>
+                        <td class="mono">@Thousands(row.Counting) pasos</td>
+                        <td class="mono">@Thousands(row.Full) pasos</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <p class="muted small">Cifras verificadas por las pruebas automáticas del motor. Por eso la introducción admite hasta @CountingAdditionMachine.MaxBits bits por operando, y la máquina completa hasta @InputValidator.MaxBits.</p>
+    <div class="tiles">
+        <div class="tile"><b>Deja solo el resultado</b><span>N2 se consume al contar y N1 se transforma en la suma. La máquina completa conserva la operación: x + y = z.</span></div>
+        <div class="tile"><b>Pocos estados, muchos pasos</b><span>La memoria de la variante está en la cinta (N2 hace de contador). La máquina completa guarda el acarreo y la suma parcial en el estado: más estados, muchos menos pasos.</span></div>
+    </div>
+    <p><a class="btn btn-primary" href="">Ver la máquina completa →</a></p>
+</section>
+
+@code {
+    private static readonly TuringMachineDefinition M = CountingAdditionMachine.Definition;
+    private static readonly Simulator CountingSimulator = CountingAdditionMachine.CreateSimulator();
+    private static readonly ExecutionTrace Min = CountingSimulator.Run("1", "1");
+
+    private static readonly InputExample[] Examples =
+    [
+        new("1", "1", "1 + 1", "Cadena mínima 1B1: 19 pasos, 1 vuelta"),
+        new("11", "10", "11 + 10", "Cadena promedio 11B10: 36 pasos, 2 vueltas"),
+        new("101", "11", "101 + 11", "La cadena promedio de la máquina completa: 49 pasos"),
+        new("111111", "111111", "111111 + 111111", "El límite: 1.170 pasos, 63 vueltas"),
+        new("", "11", "x vacío", "La máquina rechaza en q0", true),
+        new("11", "", "y vacío", "La máquina rechaza en q2", true),
+    ];
+
+    /// <summary>Miles con punto, como en el resto del sitio (26.654).</summary>
+    private static string Thousands(int n) => n.ToString("N0", System.Globalization.CultureInfo.InvariantCulture).Replace(',', '.');
+
+    private sealed record ComparisonRow(string Input, int Counting, int Full);
+
+    private static readonly ComparisonRow[] Comparison =
+    [
+        new("1 + 1", 19, 54),
+        new("111 + 111", 105, 196),
+        new("111111 + 111111 (6 bits)", 1_170, 574),
+        new("10 unos + 10 unos", 26_654, 1_386),
+        new("16 unos + 16 unos", 2_490_416, 3_264),
+    ];
+
+    private sealed record Evaluation(string Title, ExecutionTrace Trace);
+
+    private static readonly Evaluation[] _evaluations =
+    [
+        new("la cadena mínima 1B1", Min),
+        new("la cadena promedio 11B10", CountingSimulator.Run("11", "10")),
+    ];
+
+    private readonly SimulationPlayer _player = new(CountingSimulator, CountingAdditionMachine.MaxBits);
+
+    [SupplyParameterFromQuery(Name = "x")]
+    public string? QueryX { get; set; }
+
+    [SupplyParameterFromQuery(Name = "y")]
+    public string? QueryY { get; set; }
+
+    private double ProgressPercent =>
+        _player.Trace is null || _player.Trace.StepCount == 0 ? 0 : 100.0 * _player.Index / _player.Trace.StepCount;
+
+    protected override void OnInitialized()
+    {
+        _player.Changed += OnPlayerChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        var x = QueryX ?? (_player.Trace is null ? "11" : _player.X);
+        var y = QueryY ?? (_player.Trace is null ? "10" : _player.Y);
+        if (_player.Trace is null || x != _player.X || y != _player.Y)
+        {
+            _player.Load(x, y);
+        }
+    }
+
+    private void OnPlayerChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        _player.Changed -= OnPlayerChanged;
+        _player.Dispose();
+    }
+}

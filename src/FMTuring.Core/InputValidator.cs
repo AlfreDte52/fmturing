@@ -14,24 +14,27 @@ public static class InputValidator
     public const int MaxBits = 16;
 
     /// <summary>Valida los dos operandos.</summary>
-    public static ValidationResult Validate(string? x, string? y)
+    public static ValidationResult Validate(string? x, string? y) => Validate(x, y, MaxBits);
+
+    /// <summary>Valida los dos operandos con otro límite de bits (la variante por conteo usa 6).</summary>
+    public static ValidationResult Validate(string? x, string? y, int maxBits)
     {
         var errors = new List<string>();
-        Check(x ?? string.Empty, "primer", errors);
-        Check(y ?? string.Empty, "segundo", errors);
+        Check(x ?? string.Empty, "primer", maxBits, errors);
+        Check(y ?? string.Empty, "segundo", maxBits, errors);
         return new ValidationResult(errors.Count == 0, errors);
     }
 
-    private static void Check(string operand, string name, List<string> errors)
+    private static void Check(string operand, string name, int maxBits, List<string> errors)
     {
         if (operand.Any(c => !Symbols.IsBit(c)))
         {
             errors.Add($"El {name} operando solo puede contener 0 y 1.");
         }
 
-        if (operand.Length > MaxBits)
+        if (operand.Length > maxBits)
         {
-            errors.Add($"El {name} operando admite como máximo {MaxBits} bits.");
+            errors.Add($"El {name} operando admite como máximo {maxBits} bits.");
         }
     }
 }

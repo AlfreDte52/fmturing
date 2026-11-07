@@ -1,16 +1,15 @@
 @* Entrada de los operandos y ejemplos precargados (RF-11, RS-12, DA-11). *@
-@inject SimulationPlayer Player
 @inject NavigationManager Navigation
 
 <form class="card input-panel" @onsubmit="Load" @onsubmit:preventDefault>
     <div class="field">
         <label for="op-x">Primer operando (x)</label>
-        <input id="op-x" class="input mono" inputmode="numeric" autocomplete="off" maxlength="16" @bind="_x" />
+        <input id="op-x" class="input mono" inputmode="numeric" autocomplete="off" maxlength="@Player.MaxBits" @bind="_x" />
     </div>
     <span class="separator-chip" title="El separador es el símbolo blanco B">B</span>
     <div class="field">
         <label for="op-y">Segundo operando (y)</label>
-        <input id="op-y" class="input mono" inputmode="numeric" autocomplete="off" maxlength="16" @bind="_y" />
+        <input id="op-y" class="input mono" inputmode="numeric" autocomplete="off" maxlength="@Player.MaxBits" @bind="_y" />
     </div>
     <button type="submit" class="btn btn-primary">Cargar</button>
     <div class="examples">
@@ -32,9 +31,15 @@
 </form>
 
 @code {
-    private sealed record Example(string X, string Y, string Label, string Title, bool Rejects = false);
+    /// <summary>Reproductor que recibe los operandos.</summary>
+    [Parameter, EditorRequired]
+    public SimulationPlayer Player { get; set; } = default!;
 
-    private static readonly Example[] Examples =
+    /// <summary>Ejemplos precargados; por omisión, los de la máquina completa.</summary>
+    [Parameter]
+    public IReadOnlyList<InputExample> Examples { get; set; } = DefaultExamples;
+
+    private static readonly InputExample[] DefaultExamples =
     [
         new("1", "1", "1 + 1", "Cadena mínima 1B1: 54 pasos"),
         new("101", "11", "101 + 11", "Cadena promedio 101B11: 179 pasos"),
@@ -59,11 +64,11 @@
         var y = (_y ?? string.Empty).Trim();
         if (Player.Load(x, y))
         {
-            Navigation.NavigateTo($"?x={Uri.EscapeDataString(x)}&y={Uri.EscapeDataString(y)}", replace: true);
+            Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["x"] = x, ["y"] = y }), replace: true);
         }
     }
 
-    private void Use(Example example)
+    private void Use(InputExample example)
     {
         _x = example.X;
         _y = example.Y;

@@ -49,7 +49,20 @@ public sealed class SimulationPlayer : IDisposable
     private readonly Simulator _simulator;
     private CancellationTokenSource? _playCts;
 
-    public SimulationPlayer(Simulator simulator) => _simulator = simulator;
+    public SimulationPlayer(Simulator simulator)
+        : this(simulator, InputValidator.MaxBits)
+    {
+    }
+
+    /// <summary>Reproductor para otra máquina, con su propio límite de bits por operando.</summary>
+    public SimulationPlayer(Simulator simulator, int maxBits)
+    {
+        _simulator = simulator;
+        MaxBits = maxBits;
+    }
+
+    /// <summary>Longitud máxima de cada operando.</summary>
+    public int MaxBits { get; }
 
     /// <summary>Se dispara cada vez que cambia lo que hay que dibujar.</summary>
     public event Action? Changed;
@@ -97,7 +110,7 @@ public sealed class SimulationPlayer : IDisposable
         Stop();
         X = x ?? string.Empty;
         Y = y ?? string.Empty;
-        var validation = InputValidator.Validate(X, Y);
+        var validation = InputValidator.Validate(X, Y, MaxBits);
         Errors = validation.Errors;
         if (!validation.IsValid)
         {

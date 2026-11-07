@@ -38,3 +38,23 @@ public static class PhaseInfo
         _ => "—",
     };
 }
+
+/// <summary>Ejemplo precargado del panel de entrada.</summary>
+/// <param name="X">Primer operando.</param>
+/// <param name="Y">Segundo operando.</param>
+/// <param name="Label">Texto del botón.</param>
+/// <param name="Title">Descripción al pasar el cursor.</param>
+/// <param name="Rejects">Si la máquina rechaza la cadena.</param>
+public sealed record InputExample(string X, string Y, string Label, string Title, bool Rejects = false);
+
+/// <summary>Nombres de las fases de la variante por conteo.</summary>
+public static class CountingPhaseInfo
+{
+    public static string Name(Phase? phase) => phase switch
+    {
+        Phase.A => "Fase A · Validación",
+        Phase.B => "Fase B · Ciclo: resta 1 a N2, suma 1 a N1",
+        Phase.C => "Fase C · Limpieza",
+        _ => "Configuración inicial",
+    };
+}

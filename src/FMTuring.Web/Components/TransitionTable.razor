@@ -6,7 +6,7 @@
         <thead>
             <tr>
                 <th scope="col">Estado</th>
-                @foreach (var symbol in Symbols.TapeAlphabet)
+                @foreach (var symbol in Machine.TapeAlphabet)
                 {
                     <th scope="col">@symbol</th>
                 }
@@ -17,9 +17,9 @@
             {
                 <tr class="@(state == ActiveState ? "row-active" : null)">
                     <th scope="row">@state</th>
-                    @foreach (var symbol in Symbols.TapeAlphabet)
+                    @foreach (var symbol in Machine.TapeAlphabet)
                     {
-                        var found = BinaryAdditionMachine.Definition.TryGetTransition(state, symbol, out var t);
+                        var found = Machine.TryGetTransition(state, symbol, out var t);
                         var hl = found && t == Highlight;
                         <td class="@(hl ? "cell-hl" : found ? null : "cell-empty")">@(found ? $"{t.To}, {t.Write}, {t.Move}" : "—")</td>
                     }
@@ -30,6 +30,10 @@
 </div>
 
 @code {
+    /// <summary>Máquina cuya δ se muestra; por omisión, la de FMTURING.</summary>
+    [Parameter]
+    public TuringMachineDefinition Machine { get; set; } = BinaryAdditionMachine.Definition;
+
     /// <summary>Transición resaltada.</summary>
     [Parameter]
     public Transition? Highlight { get; set; }
@@ -38,9 +42,9 @@
     [Parameter]
     public string? ActiveState { get; set; }
 
-    /// <summary>Filas a mostrar; null muestra los 37 estados.</summary>
+    /// <summary>Filas a mostrar; null muestra todos los estados.</summary>
     [Parameter]
     public IReadOnlyList<string>? States { get; set; }
 
-    private IReadOnlyList<string> RowStates => States ?? BinaryAdditionMachine.States;
+    private IReadOnlyList<string> RowStates => States ?? Machine.States;
 }

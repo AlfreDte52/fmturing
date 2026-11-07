@@ -13,7 +13,14 @@
             Aceptada · @Trace.StepCount pasos
         </span>
         <div class="result-tape mono">@Pretty(Trace.FinalTape)</div>
-        <p class="muted">@Arithmetic. Los operandos se conservan y el resultado queda detrás del =.</p>
+        @if (KeepsOperation)
+        {
+            <p class="muted">@Arithmetic. Los operandos se conservan y el resultado queda detrás del =.</p>
+        }
+        else
+        {
+            <p class="muted">@Arithmetic. En la cinta solo queda el resultado: N2 se consumió al contar y N1 se transformó en la suma.</p>
+        }
     }
     else if (Trace.Outcome == ExecutionOutcome.Rejected)
     {
@@ -33,6 +40,15 @@
     [Parameter]
     public int Current { get; set; }
 
+    /// <summary>Operandos de entrada; se usan cuando la cinta final solo tiene el resultado.</summary>
+    [Parameter]
+    public string? X { get; set; }
+
+    [Parameter]
+    public string? Y { get; set; }
+
+    private bool KeepsOperation => Trace.FinalTape.Contains('=');
+
     private bool Finished => Current >= Trace.StepCount;
 
     private static string Pretty(string tape) => tape.Replace("+", " + ").Replace("=", " = ");
@@ -41,8 +57,8 @@
     {
         get
         {
-            var parts = Trace.FinalTape.Split('+', '=');
-            if (parts.Length != 3)
+            var parts = KeepsOperation ? Trace.FinalTape.Split('+', '=') : [X ?? "", Y ?? "", Trace.FinalTape];
+            if (parts.Length != 3 || parts.Any(p => p.Length == 0))
             {
                 return string.Empty;
             }

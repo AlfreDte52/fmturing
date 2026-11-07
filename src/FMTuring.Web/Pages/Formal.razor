@@ -15,12 +15,12 @@
     <div class="formula">M = (Q, Σ, Γ, δ, q0, B, F)</div>
     <div class="tiles">
         <div class="tile"><b class="mono accent">Q</b><span class="mono">{@string.Join(", ", First(4))}, …, q35, qf}</span><span class="muted">@M.States.Count estados, agrupados en cinco fases</span></div>
-        <div class="tile"><b class="mono accent">Σ</b><span class="mono">{@string.Join(", ", M.InputAlphabet)}}</span><span class="muted">Alfabeto de entrada</span></div>
-        <div class="tile"><b class="mono accent">Γ</b><span class="mono">{@string.Join(", ", M.TapeAlphabet)}}</span><span class="muted">Alfabeto de cinta; X y Y marcan bits ya sumados</span></div>
+        <div class="tile"><b class="mono accent">Σ</b><span class="mono">{@string.Join(", ", M.InputAlphabet)}</span><span class="muted">Alfabeto de entrada</span></div>
+        <div class="tile"><b class="mono accent">Γ</b><span class="mono">{@string.Join(", ", M.TapeAlphabet)}</span><span class="muted">Alfabeto de cinta; X y Y marcan bits ya sumados</span></div>
         <div class="tile"><b class="mono accent">δ</b><span class="mono">Q × Γ → Q × Γ × {L, R, S}</span><span class="muted">Función parcial: @M.Transitions.Count transiciones (<a href="maquina">ver tabla</a>)</span></div>
         <div class="tile"><b class="mono accent">q0</b><span class="mono">@M.InitialState</span><span class="muted">Estado inicial</span></div>
         <div class="tile"><b class="mono accent">B</b><span class="mono">B ∈ Γ − Σ</span><span class="muted">Símbolo blanco, también separador de los operandos</span></div>
-        <div class="tile"><b class="mono accent">F</b><span class="mono">{@string.Join(", ", M.FinalStates)}}</span><span class="muted">Estado de aceptación</span></div>
+        <div class="tile"><b class="mono accent">F</b><span class="mono">{@string.Join(", ", M.FinalStates)}</span><span class="muted">Estado de aceptación</span></div>
     </div>
 </section>
 

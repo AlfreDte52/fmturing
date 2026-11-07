@@ -11,13 +11,17 @@ Proyecto final de Autómatas y Lenguajes Formales. Sitio publicado: https://alfr
 - 37 estados (q0 a q35 y qf) y 141 transiciones; suma por columnas con acarreo en cinco fases: validación, suma, normalización, traslado del resultado y restauración.
 - Cadena mínima `1B1`: 54 pasos. Cadena promedio `101B11`: 179 pasos.
 
+## Introducción: variante por conteo
+
+La página **Introducción** muestra primero una máquina de 11 estados y 29 transiciones que suma contando: resta 1 a N2 y suma 1 a N1 hasta que N2 vale 0, y deja en la cinta solo el resultado. Tiene su propia animación, diagrama, tabla δ, grados y descripciones instantáneas de `1B1` (19 pasos) y `11B10` (36 pasos). Termina con la comparación que justifica la máquina completa: con 16 unos + 16 unos, la variante necesita 2.490.416 pasos y la suma por columnas 3.264. La variante admite hasta 6 bits por operando.
+
 ## Estructura
 
 | Proyecto | Contenido |
 | --- | --- |
-| `src/FMTuring.Core` | Motor: definición formal, cinta, descripciones instantáneas y simulador. Es la única fuente de verdad de δ. |
+| `src/FMTuring.Core` | Motor: definición formal, cinta, descripciones instantáneas y simulador. `BinaryAdditionMachine` es la máquina del proyecto y `CountingAdditionMachine` la variante de la introducción. |
 | `src/FMTuring.Web` | Interfaz Blazor WebAssembly: simulador animado, diagrama del autómata, descripción formal, tabla de transiciones y evaluación. |
-| `tests/FMTuring.Core.Tests` | Pruebas xUnit: las 3.844 sumas de 1 a 5 bits, los pasos de referencia, las 233 descripciones instantáneas de la evaluación formal y los rechazos. |
+| `tests/FMTuring.Core.Tests` | Pruebas xUnit (100): las 3.844 sumas de 1 a 5 bits en ambas máquinas, los pasos de referencia, las descripciones instantáneas de la evaluación formal y de la variante, y los rechazos. |
 
 La interfaz no calcula la suma: reproduce la traza que genera el motor, así que la animación no puede diferir de la máquina formal.
 
