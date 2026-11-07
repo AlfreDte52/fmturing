@@ -64,6 +64,8 @@ p { margin: 0 0 10px; }
 .site-nav a { padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600; color: var(--ink); }
 .site-nav a:hover { background: var(--accent-soft); }
 .site-nav a.active { background: var(--accent); color: #FFFFFF; }
+.site-nav a.nav-doc { border: 1px solid var(--accent); color: var(--accent); margin-left: 4px; }
+.site-nav a.nav-doc:hover { background: var(--accent); color: #FFFFFF; }
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); }
 .footer-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-top: 20px; padding-bottom: 20px; font-size: 0.875rem; color: var(--muted); }
 
@@ -223,6 +225,11 @@ details summary { cursor: pointer; list-style-position: inside; }
 .video-placeholder { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #E6E9F0; padding: 16px; text-align: center; }
 .video-placeholder circle { fill: none; stroke: #E6E9F0; stroke-width: 2; }
 .video-placeholder path { fill: #E6E9F0; }
+
+.doc-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.doc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.doc-frame { height: min(80vh, 900px); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface-2, #F3F4F6); }
+.doc-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 
 @media (prefers-reduced-motion: reduce) {
     .tape-strip, .cell, .progress-bar, .beat { transition: none; }

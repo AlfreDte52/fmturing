@@ -11,6 +11,18 @@ public static class SiteConfig
     /// </summary>
     public const string VideoEmbedUrl = "https://www.youtube-nocookie.com/embed/-F4bYEG7ok8";
 
+    /// <summary>Identificador del documento PDF del proyecto en Google Drive.</summary>
+    public const string DocumentId = "1u1enyZsZn5_ZtV3q-exPdgDgi4OROQiR";
+
+    /// <summary>Abre el PDF en el visor de Google Drive.</summary>
+    public const string DocumentViewUrl = "https://drive.google.com/file/d/" + DocumentId + "/view";
+
+    /// <summary>Vista previa del PDF para incrustar en la página.</summary>
+    public const string DocumentPreviewUrl = "https://drive.google.com/file/d/" + DocumentId + "/preview";
+
+    /// <summary>Descarga directa del PDF.</summary>
+    public const string DocumentDownloadUrl = "https://drive.google.com/uc?export=download&id=" + DocumentId;
+
     /// <summary>Repositorio del proyecto.</summary>
     public const string RepositoryUrl = "https://github.com/AlfreDte52/fmturing";
 }
